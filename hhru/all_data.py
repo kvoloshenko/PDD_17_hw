@@ -2,6 +2,8 @@ import json
 import pprint
 import requests
 import re
+import sqlite.database_access as db
+
 
 DOMAIN = 'https://api.hh.ru/'
 url_vacancies = f'{DOMAIN}vacancies'
@@ -121,9 +123,13 @@ def set_keywords(keywords):
     keywords_l.append(keywords)
     return keywords_l
 
-def get_data(keywords):
+def get_data(connect_string, keywords):
+    # connect_string = '../sqlite/hh_db.sqlite'
     rez_data = []
     keywords_l = set_keywords(keywords)
+    print(type(keywords),f'keywords={keywords}')
+    last_request_id = db.write_requests(connect_string,keywords)
+    print(f'last_request_id={last_request_id}')
     i = 1
     iteration = 1
     for keywords in keywords_l:
@@ -140,21 +146,26 @@ def get_data(keywords):
     # pprint.pprint(rez_data)
 
     data_save_json(rez_data, 'hhru_rezult.json')
+    requirements_l = rez_data[0]['requirements']
+    db.write_responses(connect_string, last_request_id, requirements_l)
+    # requirements = db.read_skills(connect_string, last_request_id)
+    # print(type(requirements),f'requirements={requirements}')
     return rez_data
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # set_keywords('NAME:(Python)')
-    result = get_data('NAME:(Python)')
+    # result = get_data('NAME:(Python)')
     # print(type(result))
     # print(type(result[0]['requirements']))
     # pprint.pprint(result)
-    keywords = result[0]['keywords']
-    print(f'{keywords}')
-    requirements_l = result[0]['requirements']
-    for item in requirements_l:
-        # print(f'item={item}')
-        print(f'{item["name"]} {item["count"]} {round(int(item["persent"]))}')
+    # keywords = result[0]['keywords']
+    # print(f'{keywords}')
+    # requirements_l = result[0]['requirements']
+    # print(type(requirements_l),f'requirements_l={requirements_l}')
+    # for item in requirements_l:
+    #     # print(f'item={item}')
+    #     print(f'{item["name"]} {item["count"]} {round(int(item["persent"]))}')
 
 
 
